@@ -88,6 +88,11 @@ const GlobalThemeProvider: FC<Props> = ({ children }) => {
               paper: "#2A2A2A",
             },
           }),
+          ...(mode === "dark" && {
+            error: {
+              main: "#FFAE36",
+            },
+          }),
           text: {
             ...(mode === "light"
               ? {

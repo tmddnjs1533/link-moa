@@ -5,13 +5,17 @@
   "dependencies": {
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
+    "@hookform/resolvers": "^2.9.1",
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.8.5",
+    "axios": "^0.27.2",
     "firebase": "^9.8.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.32.2",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "yup": "^0.32.11"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -59,5 +63,6 @@
     "lint-staged": "^13.0.2",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4"
-  }
+  },
+   "proxy": "http://localhost:8080"
 }
