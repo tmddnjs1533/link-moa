@@ -36,15 +36,12 @@ declare module "@mui/material/styles" {
 //   }
 // }
 
-interface Props {
-  children?: React.ReactNode;
-}
-
 type ModeType = "light" | "dark";
 export const ColorModeContext = React.createContext({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   toggleColorMode: () => {},
 });
-const GlobalThemeProvider: FC<Props> = ({ children }) => {
+const GlobalThemeProvider: FC<DefaultProps> = ({ children }) => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [init, setInit] = useState(false);
   const [mode, setMode] = React.useState<ModeType>("light");

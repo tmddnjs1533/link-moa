@@ -1,4 +1,4 @@
-import React, { FC, useState, useCallback } from "react";
+import React, { FC, useState, useCallback, useEffect } from "react";
 import {
   Box,
   Button,
@@ -45,6 +45,7 @@ const schema = yup
   .required();
 const AddMoA: FC = () => {
   const [open, setOpen] = useState(false);
+  const [interval, setInterval] = useState(false);
   const {
     control,
     handleSubmit,
@@ -69,30 +70,63 @@ const AddMoA: FC = () => {
     reset();
     setOpen(false);
   }, [reset]);
+
+  useEffect(() => {
+    const inputUrl = watch("url");
+    if (inputUrl && !interval) {
+      setInterval(true);
+      axios
+        .get("http://localhost:8080/og?u=" + encodeURIComponent(inputUrl))
+        .then((res) => {
+          if (res.status === 200) return res.data;
+        })
+        .then((data) => {
+          if (data.image || data.title || data.description) {
+            if (data.image) setValue("thumb", data.image);
+            if (data.title) setValue("title", data.title);
+            if (data.description) setValue("desc", data.description);
+          } else {
+            throw new Error(data);
+          }
+        })
+        .catch((err) => console.dir(err));
+    }
+  }, [interval, setValue, watch]);
+  // useEffect(() => {
+  //   let timer = setTimeout(() => {
+  //     setInterval(false);
+  //   }, 6000);
+  //   if (interval) {
+  //     timer();
+  //   }
+  //   return ()=>{ clearTimeout(timer) }
+  // }, []);
+
   const onSubmit = useCallback(
     async (data: IFormInputs) => {
-      if (!data.thumb || !data.title || !data.desc) {
-        return axios
-          .get("http://localhost:8080/og?u=" + encodeURIComponent(data.url))
-          .then((res) => {
-            if (res.status === 200) return res.data;
-          })
-          .then((data) => {
-            setValue("thumb", data.hybridGraph.image);
-            setValue("title", data.hybridGraph.title);
-            setValue("desc", data.hybridGraph.description);
-          })
-          .catch((err) => console.dir(err));
-      } else {
-        await addDoc(collection(db, "moa"), data);
-        reset();
-        setOpen(false);
-      }
+      // if (!data.thumb || !data.title || !data.desc) {
+      //   return axios
+      //     .get("http://localhost:8080/og?u=" + encodeURIComponent(data.url))
+      //     .then((res) => {
+      //       if (res.status === 200) return res.data;
+      //     })
+      //     .then((data) => {
+      //       setValue("thumb", data.image);
+      //       setValue("title", data.title);
+      //       setValue("desc", data.description);
+      //     })
+      //     .catch((err) => console.dir(err));
+      // } else {
+      await addDoc(collection(db, "moa"), data);
+      reset();
+      setOpen(false);
+      // }
     },
-    [reset, setValue]
+    [reset]
   );
   return (
     <>
+      {/*md up button*/}
       <Button
         endIcon={<AddIcon />}
         onClick={handleOpen}
@@ -102,13 +136,16 @@ const AddMoA: FC = () => {
       >
         <Typography variant="button">링크추가</Typography>
       </Button>
+      {/*md down button*/}
       <IconButton
         onClick={handleOpen}
         sx={{
+          width: "48px",
+          height: "48px",
           display: { xs: "block", md: "none" },
         }}
       >
-        <AddIcon />
+        <AddIcon fontSize="large" />
       </IconButton>
       <DialogContainer onClose={handleClose} open={open}>
         <DialogHead>
@@ -116,7 +153,7 @@ const AddMoA: FC = () => {
             <CloseIcon />
           </DialogCloseIconButton>
         </DialogHead>
-        <DialogContent sx={{ marginTop: "16px" }}>
+        <DialogContent sx={{ marginTop: "16px", p: 0 }}>
           <DialogName>링크 등록</DialogName>
           <Box component="form" onSubmit={handleSubmit(onSubmit)}>
             {/*링크 별명*/}

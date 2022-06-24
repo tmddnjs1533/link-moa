@@ -1,16 +1,11 @@
-import React, { FC, useCallback, useContext } from "react";
-import { Container, IconButton, Typography, useTheme } from "@mui/material";
-import { ButtonBox, HeaderContainer } from "./style";
-import { ColorModeContext } from "styles/theme";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
+import React, { FC } from "react";
+import { Container, Typography } from "@mui/material";
+
 import AddMoA from "../addMoA";
+import { ButtonBox, HeaderContainer } from "./style";
+import DarkModeButton from "./DarkModeButton";
+import EditModeButton from "./EditModeButton";
 const Header: FC = () => {
-  const theme = useTheme();
-  const colorMode = useContext(ColorModeContext);
-  const toggleMode = useCallback(() => {
-    colorMode.toggleColorMode();
-  }, [colorMode]);
   return (
     <Container maxWidth="lg">
       <HeaderContainer>
@@ -23,16 +18,10 @@ const Header: FC = () => {
           링크모아
         </Typography>
         <ButtonBox>
-          {/*dark mode button*/}
-          <IconButton sx={{ ml: 1 }} onClick={toggleMode} color="inherit">
-            {theme.palette.mode === "dark" ? (
-              <Brightness7Icon />
-            ) : (
-              <Brightness4Icon />
-            )}
-          </IconButton>
+          <DarkModeButton />
           {/*add button*/}
           <AddMoA />
+          <EditModeButton />
         </ButtonBox>
       </HeaderContainer>
     </Container>

@@ -1,57 +1,40 @@
-import { ToggleButtonGroup, ToggleButton, Container } from "@mui/material";
-import React, { FC, useCallback, useEffect, useState } from "react";
-import MoAItem from "./MoAItem";
 import {
-  ContentsTopContainer,
-  SearchForm,
-  SearchIconButton,
-  SearchInput,
-} from "./style";
+  ToggleButtonGroup,
+  ToggleButton,
+  Container,
+  CircularProgress,
+  Grid,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
+import React, { FC, useCallback, useState } from "react";
+import MoAItem from "./MoAItem";
+import { ContentsTopContainer } from "./style";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import ViewListIcon from "@mui/icons-material/ViewList";
-import SearchIcon from "@mui/icons-material/Search";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../fb";
+import useMoA from "hooks/useMoA";
+import MoAMobileItem from "./MoAMobileItem";
+import SearchComponent from "./search";
 
 const Contents: FC = () => {
-  const [init, setInit] = useState(false);
-  const [MoAList, setMoAList] = useState<MoA[]>([]);
-  const [listType, setListType] = useState<"card" | "list">("card");
-
-  useEffect(() => {
-    if (MoAList.length === 0 && !init) {
-      getDocs(collection(db, "moa")).then((snapshot) => {
-        let newMoAList: MoA[] = [];
-        snapshot.forEach((doc) => {
-          const newMoA: MoA = {
-            id: doc.id,
-            ...doc.data(),
-          };
-          newMoAList.push(newMoA);
-        });
-        setMoAList(newMoAList);
-      });
-    }
-    setInit(true);
-  }, [MoAList.length, init]);
-
+  const theme = useTheme();
+  const [listType, setListType] = useState<MoAListType>("card");
+  const [keyword, setKeyword] = useState("");
+  const { isLoading, data: MoAList } = useMoA(keyword);
   const handleChange = useCallback(() => {
     setListType((prevType) => (prevType === "card" ? "list" : "card"));
   }, []);
 
-  const handleSearch = useCallback(async () => {
-    const querySnapshot = await getDocs(collection(db, "moa"));
-    querySnapshot.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      console.log(doc.id, " => ", doc.data());
-    });
-  }, []);
-
+  const matches = useMediaQuery(theme.breakpoints.up("md"));
   return (
     <Container maxWidth="lg" sx={{ marginBottom: "26px" }}>
       <ContentsTopContainer>
         {/*  top*/}
-        <ToggleButtonGroup value={listType} onChange={handleChange}>
+        <ToggleButtonGroup
+          value={listType}
+          onChange={handleChange}
+          sx={{ display: { xs: "none", md: "flex" } }}
+        >
           {/*  list type select*/}
           <ToggleButton value="card" key="card">
             <ViewModuleIcon />
@@ -62,19 +45,28 @@ const Contents: FC = () => {
           </ToggleButton>
         </ToggleButtonGroup>
         {/*  search*/}
-        <SearchForm>
-          <SearchInput placeholder="입력하세요" value="csssss" />
-          <SearchIconButton onClick={handleSearch}>
-            <SearchIcon />
-          </SearchIconButton>
-        </SearchForm>
+        <SearchComponent setKeyword={setKeyword} />
       </ContentsTopContainer>
 
       {/*  body*/}
-      {MoAList && MoAList.length > 0 ? (
-        MoAList?.map((moa) => <MoAItem key={moa.id} moa={moa} />)
+      {!isLoading && MoAList ? (
+        MoAList.length > 0 ? (
+          <Grid container spacing={3}>
+            {MoAList?.map((moa) => (
+              <Grid item xs={12} md={listType === "card" ? 4 : 12} key={moa.id}>
+                {matches ? (
+                  <MoAItem moa={moa} listType={listType} />
+                ) : (
+                  <MoAMobileItem moa={moa} />
+                )}
+              </Grid>
+            ))}
+          </Grid>
+        ) : (
+          <div>추가한 링크가 없어요</div>
+        )
       ) : (
-        <div>추가한 링크가 없어요</div>
+        <CircularProgress />
       )}
     </Container>
   );

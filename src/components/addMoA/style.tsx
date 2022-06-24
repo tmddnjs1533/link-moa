@@ -19,6 +19,11 @@ export const DialogContainer = styled(Dialog)`
   }
   .MuiPaper-root {
     padding: 0 64px;
+    ${({ theme }) => ({
+      [theme.breakpoints.down("md")]: {
+        padding: "0 24px",
+      },
+    })}
     width: 720px;
     height: 789px;
     max-width: 720px;
