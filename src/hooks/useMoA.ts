@@ -2,7 +2,7 @@ import { QueryFunctionContext, useQuery } from "react-query";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "fb";
 export const getMoAList = ({ queryKey }: QueryFunctionContext) => {
-  console.log("getMoAList", queryKey);
+  // console.log("getMoAList", queryKey);
   const keyword = queryKey[1];
   if (keyword) {
     const nameQuery = query(
@@ -36,6 +36,7 @@ export const getMoAList = ({ queryKey }: QueryFunctionContext) => {
   }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function useMoA<TData = MoA>(keyword?: string) {
   return useQuery(["moa", keyword], getMoAList);
 }

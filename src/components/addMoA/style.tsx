@@ -10,14 +10,15 @@ import {
   FormLabel,
   TextareaAutosize,
   DialogActions,
+  Alert,
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
 export const DialogContainer = styled(Dialog)`
-  .MuiBackdrop-root {
+  & > .MuiBackdrop-root {
     background-color: ${({ theme }) =>
       theme.palette.mode === "dark" && `rgba(255,255,255,0.56)`};
   }
-  .MuiPaper-root {
+  & .MuiDialog-paper {
     padding: 0 64px;
     ${({ theme }) => ({
       [theme.breakpoints.down("md")]: {
@@ -25,7 +26,7 @@ export const DialogContainer = styled(Dialog)`
       },
     })}
     width: 720px;
-    height: 789px;
+
     max-width: 720px;
     box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.16);
     border: 2px solid ${({ theme }) => theme.palette.primary.main};
@@ -102,9 +103,12 @@ export const DialogLabel = styled(FormLabel)`
 
 export const DialogInput = styled(InputBase)`
   flex-grow: 1;
-  .MuiInputBase-input {
+  & .MuiInputBase-input {
     padding-left: 16px;
     text-align: right;
+  }
+  & .MuiCircularProgress-root {
+    margin-left: 10px;
   }
 `;
 
@@ -171,5 +175,42 @@ export const DialogSubmitButton = styled(Button)`
       : theme.palette.background.paper};
   &:hover {
     color: ${({ theme }) => theme.palette.primary.main};
+  }
+  &.Mui-disabled {
+    background-color: ${({ theme }) =>
+      theme.palette.mode === "dark" ? `#b2b2b2` : `#e5e3e3`};
+    color: #6e6e6e;
+  }
+`;
+
+export const ShadowIconLabelButton = styled(FormLabel)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  cursor: pointer;
+  margin-right: 8px;
+  width: 40px;
+  height: 40px;
+  color: ${({ theme }) => theme.palette.primary.main};
+  border: 2px solid ${({ theme }) => theme.palette.primary.main};
+  background-color: ${({ theme }) =>
+    theme.palette.mode === "dark"
+      ? theme.palette.primary.dark
+      : theme.palette.background.paper};
+
+  border-radius: 50%;
+  ${({ theme }) =>
+    theme.palette.mode !== "dark" &&
+    `
+     box-shadow: 4px 4px 0 rgba(0,0,0,0.16);
+     `}
+`;
+
+export const DialogAlert = styled(Alert)`
+  width: auto;
+  margin-bottom: 15px;
+  & .MuiAlert-root {
   }
 `;
