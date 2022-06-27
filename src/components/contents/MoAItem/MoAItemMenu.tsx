@@ -157,7 +157,8 @@ const MoAItemMenu: FC<MoAItemMenuProps> = ({
       moa.url === values.url &&
       moa.thumb === values.thumb &&
       moa.title === values.title &&
-      moa.desc === values.desc
+      moa.desc === values.desc &&
+      thumbSrc === ""
     ) {
       // 변화 없음.
       return dialogReset();
@@ -180,6 +181,7 @@ const MoAItemMenu: FC<MoAItemMenuProps> = ({
     moa.thumb,
     moa.title,
     moa.url,
+    thumbSrc,
   ]);
 
   // 이미지 onChange
