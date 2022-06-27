@@ -247,7 +247,7 @@ const MoAItemMenu: FC<MoAItemMenuProps> = ({
           if (data.image) setValue("thumb", data.image);
           if (data.title) setValue("title", data.title);
           if (data.description) setValue("desc", data.description);
-          if (data.image || data.title || data.description) {
+          if (!data.image || !data.title || !data.description) {
             setShouldCustom(true);
           } else {
             if (typeof data === "object") {
