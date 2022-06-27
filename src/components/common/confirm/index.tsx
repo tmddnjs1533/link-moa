@@ -1,49 +1,39 @@
 import * as React from "react";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import { useAppSelector } from "hooks/useRedux";
+import { dialogState } from "redux/store";
+import useCustomDialog from "hooks/useCustomDialog";
+import {
+  ConfirmActions,
+  ConfirmContainer,
+  ConfirmTitle,
+  ConfirmAction,
+} from "./style";
 
-export default function AlertDialog() {
-  const [open, setOpen] = React.useState(false);
-
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
+export default function ConfirmDialog() {
+  const { show, title, message } = useAppSelector(dialogState);
+  const { onConfirm, onCancel } = useCustomDialog();
 
   return (
-    <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Open alert dialog
-      </Button>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">
-          {"Use Google's location service?"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending
-            anonymous location data to Google, even when no apps are running.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Disagree</Button>
-          <Button onClick={handleClose} autoFocus>
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+    <ConfirmContainer
+      open={show}
+      onClose={onCancel}
+      aria-labelledby="confirm-dialog-title"
+      aria-describedby="confirm-dialog-description"
+    >
+      <ConfirmTitle id="confirm-dialog-title">{title}</ConfirmTitle>
+      <DialogContent>
+        <DialogContentText id="confirm-dialog-description">
+          {message}
+        </DialogContentText>
+      </DialogContent>
+      <ConfirmActions>
+        <ConfirmAction onClick={onCancel}>취소하기</ConfirmAction>
+        <ConfirmAction onClick={onConfirm} autoFocus>
+          확인하기
+        </ConfirmAction>
+      </ConfirmActions>
+    </ConfirmContainer>
   );
 }

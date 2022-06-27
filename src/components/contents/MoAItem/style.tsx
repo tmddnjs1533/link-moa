@@ -4,6 +4,23 @@ export const MoAItemCardPaper = styled(Paper)`
   width: 100%;
   height: 214px;
   padding: 29px 31px;
+  cursor: pointer;
+  border: 2px solid
+    ${({ theme }) =>
+      theme.palette.mode === "dark" ? `#fff` : theme.palette.primary.main};
+  box-shadow: ${({ theme }) =>
+    theme.palette.mode !== "dark" && `6px 6px 0 rgba(0,0,0,0.16)`};
+  &:hover {
+    box-shadow: ${({ theme }) =>
+      theme.palette.mode !== "dark" && `3px 3px 0 rgba(0,0,0,0.16)`};
+    transform: translate(3px, 3px);
+    .link_active {
+      text-decoration: underline;
+      text-underline-offset: 1px;
+    text-decoration-thickness: 4px;
+}
+    }
+  }
 `;
 
 export const MoAItemCardTop = styled(Box)`

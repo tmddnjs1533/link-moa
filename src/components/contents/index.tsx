@@ -15,17 +15,20 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import useMoA from "hooks/useMoA";
 import MoAMobileItem from "./MoAMobileItem";
 import SearchComponent from "./search";
+import MoAListSkeleton from "./skeleton/MoAListSkeleton";
+import MoACardSkeleton from "./skeleton/MoACardSkeleton";
+import MoAMobileSkeleton from "./skeleton/MoAMobileSkeleton";
 
 const Contents: FC = () => {
   const theme = useTheme();
   const [listType, setListType] = useState<MoAListType>("card");
   const [keyword, setKeyword] = useState("");
-  const { isLoading, data: MoAList } = useMoA(keyword);
+  const { isLoading, data: MoAList, isFetching } = useMoA(keyword);
   const handleChange = useCallback(() => {
     setListType((prevType) => (prevType === "card" ? "list" : "card"));
   }, []);
-
   const matches = useMediaQuery(theme.breakpoints.up("md"));
+
   return (
     <Container maxWidth="lg" sx={{ marginBottom: "26px" }}>
       <ContentsTopContainer>
@@ -44,6 +47,7 @@ const Contents: FC = () => {
             <ViewListIcon />
           </ToggleButton>
         </ToggleButtonGroup>
+        {isFetching && <CircularProgress />}
         {/*  search*/}
         <SearchComponent setKeyword={setKeyword} />
       </ContentsTopContainer>
@@ -65,8 +69,12 @@ const Contents: FC = () => {
         ) : (
           <div>추가한 링크가 없어요</div>
         )
+      ) : !matches ? (
+        <MoAMobileSkeleton />
+      ) : listType === "card" ? (
+        <MoACardSkeleton listType={listType} />
       ) : (
-        <CircularProgress />
+        <MoAListSkeleton listType={listType} />
       )}
     </Container>
   );

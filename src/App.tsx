@@ -6,6 +6,8 @@ import GlobalThemeProvider from "./styles/theme";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import MobilEditMode from "contexts/MobilEditMode";
+import Toast from "./components/common/toast";
+import ConfirmDialog from "./components/common/confirm";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,6 +25,8 @@ function App() {
           <Header />
           <Contents />
           <Footer />
+          <Toast />
+          <ConfirmDialog />
         </MobilEditMode>
       </GlobalThemeProvider>
       <ReactQueryDevtools />

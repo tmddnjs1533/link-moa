@@ -17,47 +17,50 @@ import {
   ListDescriptionText,
   ListURLText,
 } from "./style";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import {
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  MenuList,
-} from "@mui/material";
+import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LinkIcon from "@mui/icons-material/Link";
+import MoAItemMenu from "./MoAItemMenu";
 const MoAItem: FC<MoAItemProps> = ({ moa, listType }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+  const menuOpen = Boolean(anchorEl);
+
+  // 메뉴 오픈
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
       setAnchorEl(event.currentTarget);
     },
     []
   );
-  const handleClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
+  // item click
+  const handlePaperClick = useCallback(() => {
+    const win = window.open(moa.url, "_blank", "noopener,noreferrer");
+    if (!win) return;
+    win.focus();
+  }, [moa.url]);
   return (
     <>
       {listType === "card" ? (
-        <MoAItemCardPaper>
+        <MoAItemCardPaper onClick={handlePaperClick}>
           {/*  body*/}
           <MoAItemCardTop>
             <MoAItemImg>
               <img
-                src={moa.thumb ?? "https://via.placeholder.com/112x102"}
-                alt={moa.title ?? moa.name ?? "섬네일 없음"}
+                src={moa.thumb || "https://via.placeholder.com/112x102"}
+                alt={(moa.title || moa.name) ?? "섬네일 없음"}
+                onError={({ currentTarget }) => {
+                  currentTarget.onerror = null; // prevents looping
+                  currentTarget.src = "https://via.placeholder.com/112x102";
+                }}
               />
             </MoAItemImg>
 
             <MoAItemText>
-              <NameText noWrap>{moa.name}</NameText>
+              <NameText noWrap className="link_active">
+                {moa.name}
+              </NameText>
               <URLText noWrap>{moa.url}</URLText>
               <TitleText noWrap>{moa.title}</TitleText>
             </MoAItemText>
@@ -82,8 +85,12 @@ const MoAItem: FC<MoAItemProps> = ({ moa, listType }) => {
           <MoAItemListGraph>
             <MoAItemImg listType={listType === "list"}>
               <img
-                src={moa.thumb ?? "https://via.placeholder.com/112x102"}
-                alt={moa.title ?? moa.name ?? "섬네일 없음"}
+                src={moa.thumb || "https://via.placeholder.com/112x102"}
+                alt={moa.title || moa.name || "섬네일 없음"}
+                onError={({ currentTarget }) => {
+                  currentTarget.onerror = null; // prevents looping
+                  currentTarget.src = "https://via.placeholder.com/112x102";
+                }}
               />
             </MoAItemImg>
             <MoAItemText>
@@ -99,32 +106,12 @@ const MoAItem: FC<MoAItemProps> = ({ moa, listType }) => {
           </MoAItemListButton>
         </MoAItemListPaper>
       )}
-      <Menu
-        id="basic-menu"
+      <MoAItemMenu
+        moa={moa}
+        menuOpen={menuOpen}
         anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        MenuListProps={{
-          "aria-labelledby": "basic-button",
-        }}
-      >
-        <MenuList>
-          <MenuItem>
-            <ListItemIcon>
-              <EditIcon />
-            </ListItemIcon>
-            <ListItemText>링크 수정</ListItemText>
-          </MenuItem>
-          {/* todo 수정 다이얼로그 추가*/}
-          <MenuItem>
-            <ListItemIcon>
-              <DeleteIcon />
-            </ListItemIcon>
-            <ListItemText>링크 삭제</ListItemText>
-          </MenuItem>
-          {/* todo 삭제 확인 창*/}
-        </MenuList>
-      </Menu>
+        setAnchorEl={setAnchorEl}
+      />
     </>
   );
 };

@@ -23,9 +23,11 @@ export const customDialogSlice = createSlice({
     },
     setHide: (state) => {
       state.show = false;
+      state.message = "";
     },
     setMessage: {
       reducer(state, action: PayloadAction<DialogTextContext>) {
+        state.show = true;
         state.title = action.payload.title;
         state.message = action.payload.message;
       },
