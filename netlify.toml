@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "/proxy/*"
+  to = "https://link-moa-api.herokuapp.com/:splat"
+  status = 200
+  force = true

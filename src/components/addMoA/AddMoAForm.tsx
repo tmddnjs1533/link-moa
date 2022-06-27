@@ -53,6 +53,9 @@ interface AddMoAFormProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+const PROXY = window.location.hostname === "localhost" ? "" : "/proxy";
+const URL = `${PROXY}/og`;
+
 const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
   // state
   const [isUrlTyped, setIsUrlTyped] = useState(false); // url 입력하여 정보 가져오기 완료됨.
@@ -153,11 +156,9 @@ const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
     ) {
       setIsApiLoading(true);
       setPrevUrl(inputUrl);
+
       axios
-        .get(
-          "https://link-moa-api.herokuapp.com/og?u=" +
-            encodeURIComponent(inputUrl)
-        )
+        .get(`${URL}?u=${encodeURIComponent(inputUrl)}`)
         .then((res) => {
           if (res.status === 200) return res.data;
         })
