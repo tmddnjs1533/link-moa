@@ -16,7 +16,9 @@ interface UrlTextFieldProps {
   setHasOpengraph: React.Dispatch<React.SetStateAction<boolean>>;
   defaultUrl?: string;
 }
-const URL = `https://link-moa-api.herokuapp.com`;
+const PROXY = window.location.hostname === "localhost" ? "" : "/proxy";
+const URL = `${PROXY}/og`;
+// const URL = `https://link-moa-api.herokuapp.com`;
 const UrlTextField: FC<UrlTextFieldProps> = ({
   setIsUrlTyped,
   setHasOpengraph,
@@ -44,7 +46,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
     setIsApiLoading(true);
     setPrevUrl(inputUrl);
     await axios
-      .get(`${URL}/og?u=${encodeURIComponent(inputUrl)}`)
+      .get(`${URL}?u=${encodeURIComponent(inputUrl)}`)
       .then((res) => {
         if (res.status === 200) return res.data;
       })
