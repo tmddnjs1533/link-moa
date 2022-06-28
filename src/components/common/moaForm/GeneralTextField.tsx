@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useMemo } from "react";
 import {
   DialogInput,
   DialogLabel,
@@ -6,7 +6,7 @@ import {
   InputContainer,
 } from "../../addMoA/style";
 import { FormHelperText } from "@mui/material";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, FieldError } from "react-hook-form";
 
 interface GeneralTextFieldProps {
   label: string;
@@ -23,9 +23,13 @@ const GeneralTextField: FC<GeneralTextFieldProps> = ({
     control,
     formState: { errors },
   } = useFormContext();
-
+  const formError: FieldError | undefined = useMemo(
+    () => errors[formName],
+    [errors, formName]
+  );
+  const isError = useMemo(() => Boolean(formError), [formError]);
   return (
-    <InputContainer error={Boolean(errors[formName])}>
+    <InputContainer error={isError}>
       <InputBox>
         <DialogLabel required htmlFor="link-name">
           {label} {/*링크 별명*/}
@@ -43,9 +47,7 @@ const GeneralTextField: FC<GeneralTextFieldProps> = ({
           )}
         />
       </InputBox>
-      {errors[formName] && (
-        <FormHelperText>{errors[formName]?.message}</FormHelperText>
-      )}
+      {isError && <FormHelperText>{formError?.message}</FormHelperText>}
     </InputContainer>
   );
 };
