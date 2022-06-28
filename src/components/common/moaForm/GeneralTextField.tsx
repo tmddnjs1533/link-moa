@@ -23,7 +23,7 @@ const GeneralTextField: FC<GeneralTextFieldProps> = ({
     control,
     formState: { errors },
   } = useFormContext();
-  const formError: FieldError | undefined = errors && errors[formName];
+  const formError: FieldError | undefined = errors[formName];
   return (
     <InputContainer error={Boolean(formError)}>
       <InputBox>
