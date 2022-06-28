@@ -68,7 +68,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
           } else {
             // console.log("오류 url");
             setHasOpengraph(true);
-            if (errors.url) clearErrors();
+            if (errors?.url) clearErrors();
           }
         }
       })
@@ -92,7 +92,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
     setValue,
     inputUrl,
     setError,
-    errors.url,
+    errors?.url,
     clearErrors,
     setIsUrlTyped,
     setHasOpengraph,
@@ -140,7 +140,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
           )}
         />
       </InputBox>
-      {errors.url && <FormHelperText>{errors.url.message}</FormHelperText>}
+      {errors?.url && <FormHelperText>{errors?.url?.message}</FormHelperText>}
     </InputContainer>
   );
 };
