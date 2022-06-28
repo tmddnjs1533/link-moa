@@ -6,12 +6,7 @@ import {
   InputContainer,
 } from "../../addMoA/style";
 import { FormHelperText } from "@mui/material";
-import {
-  useFormContext,
-  Controller,
-  FieldError,
-  FieldErrors,
-} from "react-hook-form";
+import { useFormContext, Controller, FieldError } from "react-hook-form";
 
 interface GeneralTextFieldProps {
   label: string;
@@ -29,8 +24,13 @@ const GeneralTextArea: FC<GeneralTextFieldProps> = ({
     formState: { errors },
   } = useFormContext();
 
-  const formError: FieldError | (FieldError & FieldErrors<any>) | undefined =
-    useMemo(() => errors[formName], [errors, formName]);
+  const formError: FieldError | undefined = useMemo(() => {
+    let error: FieldError;
+    if (errors && errors[formName]) {
+      error = errors[formName] as FieldError;
+      return error;
+    }
+  }, [errors, formName]);
   const isError = useMemo(() => Boolean(formError), [formError]);
   return (
     <InputContainer error={isError}>
