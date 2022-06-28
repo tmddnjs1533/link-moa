@@ -44,7 +44,7 @@ const GeneralTextArea: FC<GeneralTextFieldProps> = ({
         />
       </InputBox>
       {errors[formName] && (
-        <FormHelperText>{errors[formName].message}</FormHelperText>
+        <FormHelperText>{errors[formName]?.message}</FormHelperText>
       )}
     </InputContainer>
   );
