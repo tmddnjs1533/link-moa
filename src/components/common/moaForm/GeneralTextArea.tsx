@@ -10,7 +10,7 @@ import { useFormContext, Controller, FieldError } from "react-hook-form";
 
 interface GeneralTextFieldProps {
   label: string;
-  formName: string;
+  formName: keyof IFormInputs;
   id?: string;
 }
 
