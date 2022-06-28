@@ -6,7 +6,7 @@ import {
   InputContainer,
 } from "../../addMoA/style";
 import { FormHelperText } from "@mui/material";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, FieldError } from "react-hook-form";
 
 interface GeneralTextFieldProps {
   label: string;
@@ -23,7 +23,7 @@ const GeneralTextField: FC<GeneralTextFieldProps> = ({
     control,
     formState: { errors },
   } = useFormContext();
-  const formError = errors && errors[formName];
+  const formError: FieldError = errors && errors[formName];
   return (
     <InputContainer error={Boolean(formError)}>
       <InputBox>
@@ -43,7 +43,7 @@ const GeneralTextField: FC<GeneralTextFieldProps> = ({
           )}
         />
       </InputBox>
-      {formError && <FormHelperText>{formError?.message}</FormHelperText>}
+      {formError && <FormHelperText>{formError.message}</FormHelperText>}
     </InputContainer>
   );
 };
