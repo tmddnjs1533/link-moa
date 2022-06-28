@@ -1,46 +1,27 @@
-import React, {
-  ChangeEvent,
-  FC,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { FC, useState, useCallback } from "react";
 import {
   DialogAlert,
-  DialogInput,
-  DialogLabel,
   DialogName,
-  DialogShadowIconButton,
   DialogSubmitActions,
   DialogSubmitButton,
-  DialogTextArea,
-  DialogThumb,
-  DialogThumbContainer,
-  InputBox,
-  InputContainer,
-  ShadowIconLabelButton,
 } from "./style";
-import {
-  Box,
-  CircularProgress,
-  DialogContent,
-  FormHelperText,
-} from "@mui/material";
+import { Box, DialogContent } from "@mui/material";
 import { useMutation, useQueryClient } from "react-query";
 import { addDoc, collection } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "../../fb";
-import FileUploadIcon from "@mui/icons-material/FileUpload";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import CloseIcon from "@mui/icons-material/Close";
 import { DialogCloseIconButton, DialogContainer, DialogHead } from "./style";
-import { useForm, FormProvider, Controller } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import axios from "axios";
-import { useAppDispatch } from "../../hooks/useRedux";
-import { setToastShow } from "../../redux/toastSlice";
+import { useAppDispatch } from "hooks/useRedux";
+import { setToastShow } from "redux/toastSlice";
+import useCustomDialog from "hooks/useCustomDialog";
+import Thumbnail from "components/common/moaForm/Thumbnail";
+import GeneralTextField from "components/common/moaForm/GeneralTextField";
+import GeneralTextArea from "components/common/moaForm/GeneralTextArea";
+import UrlTextField from "components/common/moaForm/URLTextField";
 const schema = yup.object({
   name: yup.string().required("필수 입력 영역입니다."),
   url: yup.string().required("필수 입력 영역입니다."),
@@ -53,17 +34,11 @@ interface AddMoAFormProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const PROXY = window.location.hostname === "localhost" ? "" : "/proxy";
-const URL = `${PROXY}/og`;
-
 const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
   // state
   const [isUrlTyped, setIsUrlTyped] = useState(false); // url 입력하여 정보 가져오기 완료됨.
-  const [isApiLoading, setIsApiLoading] = useState(false); // 정보 가져오기 로딩중
-  const [prevUrl, setPrevUrl] = useState(""); // 정보가져오기를 이미 진행한 url 문자열
   const [thumb, setThumb] = useState<File>(); // 링크 이미지 수정용 파일
-  const [thumbSrc, setThumbSrc] = useState(""); // 링크 이미지 수정 시 파일 미리보기
-  const [shouldCustom, setShouldCustom] = useState(false); // 링크 메타데이터 부족으로 커스텀 필요
+  const [hasOpengraph, setHasOpengraph] = useState(false); // 링크 메타데이터 없음
 
   // form hook
   const methods = useForm<IFormInputs>({
@@ -78,53 +53,48 @@ const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
     },
   });
   const {
-    control,
     handleSubmit,
-    watch,
     reset,
+    getValues,
     setValue,
-    setError,
-    clearErrors,
-    formState: { errors, isValid },
+    formState: { isValid },
   } = methods;
-
-  // url 값 감시
-  const inputUrl = watch("url");
 
   // react-query hook
   const queryClient = useQueryClient();
-
   const dispatch = useAppDispatch();
+  const { confirm } = useCustomDialog();
 
-  // Dialog 닫기 = 리셋
-  // todo reset confirm
-  const handleClose = useCallback(() => {
+  // 리셋
+  const dialogReset = useCallback(() => {
     reset();
     setOpen(false);
     setIsUrlTyped(false);
-    setPrevUrl("");
-    setThumbSrc("");
-    setShouldCustom(false);
   }, [reset, setOpen]);
 
-  // 이미지 onChange
-  const handleFileChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const fileList = e.currentTarget.files;
-      if (!!fileList && fileList.length > 0) {
-        setThumb(fileList[0]);
-        const reader = new FileReader();
-        reader.readAsDataURL(fileList[0]);
-        reader.onload = () => {
-          if (!!reader?.result && typeof reader?.result === "string") {
-            // console.log("Dd");
-            setThumbSrc(reader.result);
-          }
-        };
+  // Dialog 닫기
+  const handleClose = useCallback(async () => {
+    const value = getValues();
+    if (
+      value.name ||
+      value.url ||
+      value.title ||
+      value.thumb ||
+      value.desc ||
+      thumb
+    ) {
+      const isConfirmed = await confirm({
+        title: "링크 등록 취소",
+        message: "작성중인 내용이 초기화 됩니다.",
+      });
+      if (isConfirmed) {
+        console.log("확인");
+        return dialogReset();
       }
-    },
-    [setThumb, setThumbSrc]
-  );
+    } else {
+      return dialogReset();
+    }
+  }, [confirm, dialogReset, getValues, thumb]);
 
   // 링크 추가
   const addLink = (data: IFormInputs) => {
@@ -145,96 +115,30 @@ const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
         dispatch(setToastShow({ message: "실패하였습니다.", status: "error" }));
       });
   };
-
-  // url 값 감시하여 값 변경 될 때마다 api 호출
-  useEffect(() => {
-    if (
-      inputUrl &&
-      inputUrl.length > 8 &&
-      prevUrl !== inputUrl &&
-      !isApiLoading
-    ) {
-      setIsApiLoading(true);
-      setPrevUrl(inputUrl);
-
-      axios
-        .get(`${URL}?u=${encodeURIComponent(inputUrl)}`)
-        .then((res) => {
-          if (res.status === 200) return res.data;
-        })
-        .then((data) => {
-          if (data.image) setValue("thumb", data.image);
-          if (data.title) setValue("title", data.title);
-          if (data.description) setValue("desc", data.description);
-          if (data.image && data.title && data.description) {
-            setIsUrlTyped(true);
-          } else if (data.image || data.title || data.description) {
-            setIsUrlTyped(true);
-            setShouldCustom(true);
-          } else {
-            if (typeof data === "object") {
-              setError("url", {
-                type: "invalid-url",
-                message: "유효하지 않은 URL입니다.",
-              });
-              setIsUrlTyped(false);
-              setShouldCustom(false);
-            } else {
-              // console.log("오류 url");
-              setShouldCustom(true);
-              if (errors.url) clearErrors();
-            }
-          }
-        })
-        .catch((err) => {
-          console.dir(err);
-        })
-        .finally(() => {
-          setIsApiLoading(false);
-        });
-    }
-  }, [
-    isApiLoading,
-    setValue,
-    inputUrl,
-    prevUrl,
-    setError,
-    errors.url,
-    clearErrors,
-  ]);
-  // console.log("errors", errors);
-  // console.log("isValid", isValid);
   // 제출
   const { mutateAsync } = useMutation(addLink);
+
   const onSubmit = useCallback(
     async (data: IFormInputs) => {
-      if (shouldCustom) {
-        if (thumbSrc && thumb) {
-          let newData = { ...data };
-          const storageRef = ref(storage, "/link-thumb/" + data.name);
+      // 제출시 이미지 파일 존재하면 이미지 파일 올림
+      if (thumb) {
+        let newData = { ...data };
+        const storageRef = ref(storage, "/link-thumb/" + data.name);
 
-          await uploadBytes(storageRef, thumb).then((snapshot) => {
-            console.log("Uploaded a blob or file!", snapshot);
-            return getDownloadURL(snapshot.ref).then((url) => {
-              setValue("thumb", url);
-              newData.thumb = url;
-            });
+        await uploadBytes(storageRef, thumb).then((snapshot) => {
+          console.log("Uploaded a blob or file!", snapshot);
+          return getDownloadURL(snapshot.ref).then((url) => {
+            setValue("thumb", url);
+            newData.thumb = url;
           });
+        });
 
-          return mutateAsync(newData);
-        }
+        return mutateAsync(newData);
       }
       return mutateAsync(data);
     },
-    [mutateAsync, setValue, shouldCustom, thumb, thumbSrc]
+    [mutateAsync, setValue, thumb]
   );
-
-  // 이미지 삭제
-  const handleImageRemove = useCallback(() => {
-    setThumb(undefined);
-    setThumbSrc("");
-    if (watch("thumb")) setValue("thumb", "");
-  }, [setValue, watch]);
 
   return (
     <>
@@ -249,152 +153,42 @@ const AddMoAForm: FC<AddMoAFormProps> = ({ open, setOpen }) => {
             <DialogName>링크 등록</DialogName>
             <Box component="form" onSubmit={handleSubmit(onSubmit)}>
               {/*링크 별명*/}
-              <InputContainer error={Boolean(errors?.name)}>
-                <InputBox>
-                  <DialogLabel required htmlFor="link-name">
-                    링크 별명
-                  </DialogLabel>
-                  <Controller
-                    control={control}
-                    name="name"
-                    render={({ field: { value, onChange } }) => (
-                      <DialogInput
-                        id="link-name"
-                        aria-label="링크 별명"
-                        value={value}
-                        onChange={onChange}
-                      />
-                    )}
-                  />
-                </InputBox>
-                {errors.name && (
-                  <FormHelperText>{errors.name.message}</FormHelperText>
-                )}
-              </InputContainer>
+              <GeneralTextField
+                label={"링크 별명"}
+                formName={"name"}
+                id={"link-name"}
+              />
               {/*  링크 URL*/}
-              <InputContainer error={Boolean(errors?.url)}>
-                <InputBox>
-                  <DialogLabel required htmlFor="link-url">
-                    링크 URL
-                  </DialogLabel>
-                  <Controller
-                    control={control}
-                    name="url"
-                    render={({ field: { value, onChange } }) => (
-                      <DialogInput
-                        id="link-url"
-                        aria-label="링크 URL"
-                        value={value}
-                        onChange={onChange}
-                        endAdornment={
-                          isApiLoading && <CircularProgress size={20} />
-                        }
-                      />
-                    )}
-                  />
-                </InputBox>
-                {errors.url && (
-                  <FormHelperText>{errors.url.message}</FormHelperText>
-                )}
-              </InputContainer>
-              {shouldCustom && (
+              <UrlTextField
+                setIsUrlTyped={setIsUrlTyped}
+                setHasOpengraph={setHasOpengraph}
+              />
+              {hasOpengraph && (
                 <DialogAlert severity="warning">
                   메타데이터가 존재하지 않는 페이지 입니다.
                 </DialogAlert>
               )}
-              {(isUrlTyped || shouldCustom) && (
+              {isUrlTyped && (
                 <>
-                  <DialogThumbContainer>
-                    {/*  링크 대표이미지*/}
-                    <DialogThumb>
-                      <img
-                        src={!shouldCustom ? watch("thumb") : thumbSrc}
-                        alt={watch("title")}
-                        onError={({ currentTarget }) => {
-                          currentTarget.onerror = null; // prevents looping
-                          currentTarget.src =
-                            "https://via.placeholder.com/175x120";
-                        }}
-                      />
-                    </DialogThumb>
-                    <input
-                      type="file"
-                      id="file-thumb"
-                      onChange={handleFileChange}
-                      hidden
-                    />
-                    {watch("thumb") || thumb ? (
-                      <>
-                        <ShadowIconLabelButton htmlFor="file-thumb">
-                          <EditIcon />
-                        </ShadowIconLabelButton>
-                        <DialogShadowIconButton onClick={handleImageRemove}>
-                          <DeleteForeverIcon />
-                        </DialogShadowIconButton>
-                      </>
-                    ) : (
-                      <>
-                        <ShadowIconLabelButton htmlFor="file-thumb">
-                          <FileUploadIcon />
-                        </ShadowIconLabelButton>
-                      </>
-                    )}
-                  </DialogThumbContainer>
-                  <InputContainer>
-                    <InputBox>
-                      <DialogLabel htmlFor="link-thumb">
-                        링크 대표이미지
-                      </DialogLabel>
-                      <Controller
-                        control={control}
-                        name="thumb"
-                        render={({ field: { value, onChange } }) => (
-                          <DialogInput
-                            id="link-thumb"
-                            aria-label="링크 대표이미지"
-                            value={value}
-                            onChange={onChange}
-                          />
-                        )}
-                      />
-                    </InputBox>
-                  </InputContainer>
+                  <Thumbnail setThumb={setThumb} />
+                  {/*  링크 이미지*/}
+                  <GeneralTextField
+                    label={"링크 이미지"}
+                    formName={"thumb"}
+                    id={"link-thumb"}
+                  />
                   {/*  링크 제목*/}
-                  <InputContainer>
-                    <InputBox>
-                      <DialogLabel htmlFor="link-title">링크 제목</DialogLabel>
-                      <Controller
-                        control={control}
-                        name="title"
-                        render={({ field: { value, onChange } }) => (
-                          <DialogInput
-                            id="link-title"
-                            aria-label="링크 제목"
-                            value={value}
-                            onChange={onChange}
-                          />
-                        )}
-                      />
-                    </InputBox>
-                  </InputContainer>
+                  <GeneralTextField
+                    label={"링크 제목"}
+                    formName={"title"}
+                    id={"link-title"}
+                  />
                   {/*  링크 설명*/}
-                  <InputContainer>
-                    <InputBox className="textarea">
-                      <DialogLabel htmlFor="link-desc">링크 설명</DialogLabel>
-                      <Controller
-                        control={control}
-                        name="desc"
-                        render={({ field: { value, onChange } }) => (
-                          <DialogTextArea
-                            id="link-desc"
-                            aria-label="링크 설명"
-                            value={value}
-                            onChange={onChange}
-                          />
-                        )}
-                      />
-                    </InputBox>
-                  </InputContainer>
+                  <GeneralTextArea
+                    label={"링크 설명"}
+                    formName={"desc"}
+                    id={"link-desc"}
+                  />
                 </>
               )}
             </Box>
