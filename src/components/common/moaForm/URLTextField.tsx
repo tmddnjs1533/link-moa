@@ -26,7 +26,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
 }) => {
   const {
     control,
-    watch,
+    getValues,
     setValue,
     setError,
     clearErrors,
@@ -39,72 +39,74 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
   const dispatch = useAppDispatch();
 
   // url 값 감시
-  const inputUrl = watch("url");
 
-  const getOpenGraph = useCallback(async () => {
-    console.log("getOpenGraph 내부");
-    setIsApiLoading(true);
-    setPrevUrl(inputUrl);
-    await axios
-      .get(`${URL}?u=${encodeURIComponent(inputUrl)}`)
-      .then((res) => {
-        if (res.status === 200) return res.data;
-      })
-      .then((data) => {
-        if (data.image) setValue("thumb", data.image);
-        if (data.title) setValue("title", data.title);
-        if (data.description) setValue("desc", data.description);
-        if (data.image && data.title && data.description) {
-          if (setIsUrlTyped) setIsUrlTyped(true);
-        } else if (data.image || data.title || data.description) {
-          if (setIsUrlTyped) setIsUrlTyped(true);
-          // setHasOpengraph(true);
-        } else {
-          if (typeof data === "object") {
-            setError("url", {
-              type: "invalid-url",
-              message: "유효하지 않은 URL입니다.",
-            });
-            if (setIsUrlTyped) setIsUrlTyped(false);
-            setHasOpengraph(false);
+  const getOpenGraph = useCallback(
+    async (inputUrl: string) => {
+      console.log("getOpenGraph 내부");
+      setIsApiLoading(true);
+      setPrevUrl(inputUrl);
+      await axios
+        .get(`${URL}?u=${encodeURIComponent(inputUrl)}`)
+        .then((res) => {
+          if (res.status === 200) return res.data;
+        })
+        .then((data) => {
+          if (data.image) setValue("thumb", data.image);
+          if (data.title) setValue("title", data.title);
+          if (data.description) setValue("desc", data.description);
+          if (data.image && data.title && data.description) {
+            if (setIsUrlTyped) setIsUrlTyped(true);
+          } else if (data.image || data.title || data.description) {
+            if (setIsUrlTyped) setIsUrlTyped(true);
+            // setHasOpengraph(true);
           } else {
-            // console.log("오류 url");
-            setHasOpengraph(true);
-            if (errors?.url) clearErrors();
+            if (typeof data === "object") {
+              setError("url", {
+                type: "invalid-url",
+                message: "유효하지 않은 URL입니다.",
+              });
+              if (setIsUrlTyped) setIsUrlTyped(false);
+              setHasOpengraph(false);
+            } else {
+              // console.log("오류 url");
+              setHasOpengraph(true);
+              if (errors?.url) clearErrors();
+            }
           }
-        }
-      })
-      .catch((err) => {
-        console.dir(err);
-        setError("url", {
-          type: "pre-validate-url",
-          message: "URL 검증을 진행해주세요.",
+        })
+        .catch((err) => {
+          console.dir(err);
+          setError("url", {
+            type: "pre-validate-url",
+            message: "URL 검증을 진행해주세요.",
+          });
+          dispatch(
+            setToastShow({
+              message: "실패하였습니다.",
+              status: "error",
+            })
+          );
+        })
+        .finally(() => {
+          setIsApiLoading(false);
         });
-        dispatch(
-          setToastShow({
-            message: "실패하였습니다.",
-            status: "error",
-          })
-        );
-      })
-      .finally(() => {
-        setIsApiLoading(false);
-      });
-  }, [
-    setValue,
-    inputUrl,
-    setError,
-    errors?.url,
-    clearErrors,
-    setIsUrlTyped,
-    setHasOpengraph,
-    dispatch,
-  ]);
+    },
+    [
+      setValue,
+      setError,
+      errors?.url,
+      clearErrors,
+      setIsUrlTyped,
+      setHasOpengraph,
+      dispatch,
+    ]
+  );
 
   const refetch = useCallback(() => {
     console.log("refetch");
-    getOpenGraph();
-  }, [getOpenGraph]);
+    const { url } = getValues();
+    getOpenGraph(url);
+  }, [getOpenGraph, getValues]);
 
   return (
     <InputContainer error={Boolean(errors?.url)}>
@@ -127,7 +129,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
                   prevUrl !== e.target.value &&
                   !isApiLoading
                 ) {
-                  getOpenGraph();
+                  getOpenGraph(e.target.value);
                 }
               }}
               startAdornment={
