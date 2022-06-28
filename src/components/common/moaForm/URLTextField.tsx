@@ -29,7 +29,7 @@ const UrlTextField: FC<UrlTextFieldProps> = ({
     setError,
     clearErrors,
     formState: { errors },
-  } = useFormContext();
+  } = useFormContext<IFormInputs>();
   const [isApiLoading, setIsApiLoading] = useState(false); // 정보 가져오기 로딩중
   const [prevUrl, setPrevUrl] = useState(defaultUrl || ""); // 정보가져오기를 이미 진행한 url 문자열
 
